@@ -30,13 +30,20 @@ from telegraf.client import TelegrafClient
 client = TelegrafClient(host='localhost', port=8092)
 
 # Records a single value with no tags
-client.metric('some_metric', 123)
+client.track('some_metric', 123)
 
 # Records a three values with different data types
-client.metric('some_metric', {'value_a': 100, 'value_b': 100, 'value_c': True})
+client.track('some_metric', {'value_a': 100, 'value_b': 100, 'value_c': True})
 
 # Records a single value with one tag
-client.metric('some_metric', 123, tags={'server_name': 'my-server'})
+client.track('some_metric', 123, tags={'server_name': 'my-server'})
+
+# Records several measurements
+m1 = client.prepare('metric_one', 1, tags={'server_name': 'my-server'})
+m2 = client.prepare('metric_two', {'duration': 100}, tags={'big': True})
+m3 = client.prepare('metric_three', {'cnt': 14}, tags={'type': 'goals'})
+client.track_prepared(m1, m2, m3)
+
 ```
 
 #### Global tags
@@ -47,7 +54,7 @@ This is useful for adding tagging metrics by host or app
 client = TelegrafClient(host='localhost', port=8092, tags={'host': 'my-host-001'})
 
 # Records a single value
-client.metric('some_metric', 123)
+client.track('some_metric', 123)
 ```
 
 Because client was initialized with tags the metric contains them too so the line that was sent to Telegraf looks like this
@@ -58,7 +65,7 @@ some_metric,host=my-host-001 value=123i
 Global tags can be overridden by defining them when sending a metric
 ```
 # Records a single value with host tag
-client.metric('some_metric', 123, tags={'host':'another-host-001', 'some_tag':'some_value'})
+client.track('some_metric', 123, tags={'host':'another-host-001', 'some_tag':'some_value'})
 ```
 
 Will send the following line
@@ -66,17 +73,6 @@ Will send the following line
 some_metric,host=another-host-001,some_tag=some_value value=123i
 ```
 
-### HTTP Client
-The default `TelegrafClient` uses UDP to send metrics to Telegraf. The `HttpClient` works similarly, except that it issues requests via an HTTP POST. HTTP introduces non-trivial overhead, so to avoid blocking the main thread, these POSTs are issued in the background.
-
-To use the `HttpClient`, `pytelegraf` must be installed like this: `pip install pytelegraf[http]`. Alternatively, add `pytelegraf[http]` to `requirements.txt`.
-
-```
-from telegraf import HttpClient
-
-http_client = HttpClient(host='localhost', port=8186)
-http_client.metric('some_metric', 123, tags={'server_name': 'my-server'})
-```
 
 ### Telegraf configuration for versions 1.3 and higher
 Just follow the sample configuration https://github.com/influxdata/telegraf/tree/master/plugins/inputs/socket_listener
