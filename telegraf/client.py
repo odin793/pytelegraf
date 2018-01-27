@@ -6,13 +6,15 @@ from .protocol import Line
 
 class ClientBase(object):
 
-    def __init__(self, host='localhost', port=8094, tags=None):
+    def __init__(self, host, port, tags):
         self.host = host
         self.port = port
         self.tags = tags or {}
 
     def track(self, name, values, tags=None, timestamp=None):
-        metric = self.prepare_metric(
+        assert values not in (None, {}), 'empty values are not allowed'
+
+        metric = self.prepare(
             name=name, values=values, tags=tags, timestamp=timestamp
         )
         self.send(metric.to_line_protocol())
