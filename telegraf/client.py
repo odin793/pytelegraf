@@ -11,22 +11,23 @@ class ClientBase(object):
         self.port = port
         self.tags = tags or {}
 
-    def track(self, name, values, tags=None, timestamp=None):
-        assert values not in (None, {}), 'empty values are not allowed'
+    def track(self, name, fields, tags=None, timestamp=None):
+        assert name, 'Must have measurement name'
+        assert fields not in (None, {}), 'Empty fields are not allowed'
 
         metric = self.prepare(
-            name=name, values=values, tags=tags, timestamp=timestamp
+            name=name, fields=fields, tags=tags, timestamp=timestamp
         )
         self.send(metric.to_line_protocol())
 
-    def prepare(self, name, values, tags=None, timestamp=None):
+    def prepare(self, name, fields, tags=None, timestamp=None):
         tags = tags or {}
 
         # Do a shallow merge of the metric tags and global tags
         all_tags = dict(self.tags, **tags)
 
         # Create a metric line from the input and then send it to socket
-        return Line(name, values, all_tags, timestamp)
+        return Line(name, fields, all_tags, timestamp)
 
     def track_prepared(self, *metrics):
         self.send('\n'.join(line.to_line_protocol() for line in metrics))

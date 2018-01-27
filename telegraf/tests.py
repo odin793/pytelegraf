@@ -159,7 +159,7 @@ class TestTelegraf(TestCase):
         self.client.socket = mock.Mock()
 
         self.client.track(u'meäsurement',
-                          values={u'välue': 1, u'këy': u'valüe'},
+                          fields={u'välue': 1, u'këy': u'valüe'},
                           tags={u'äpples': u'öranges'})
         self.client.socket.sendto.assert_called_with(
             (b'me\xc3\xa4surement,\xc3\xa4pples=\xc3\xb6ranges '
